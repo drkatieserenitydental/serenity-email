@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 13 * * *"
+    }
+  ],
+  "env": {
+    "CRON_SECRET": "@cron_secret",
+    "APP_URL": "@app_url"
+  }
+}
