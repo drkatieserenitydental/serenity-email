@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Serenity Dental — EOM Task Manager</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      min-height: 100vh;
+    }
+    header {
+      background: #2C5F8A;
+      color: white;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 20px; font-weight: 700; }
+    header p { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+    .container { max-width: 780px; margin: 32px auto; padding: 0 16px; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+
+    .month-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .month-selector label { font-weight: 600; font-size: 15px; }
+    select {
+      padding: 9px 14px;
+      border: 1.5px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      background: white;
+      cursor: pointer;
+      color: #333;
+    }
+    select:focus { outline: none; border-color: #2C5F8A; }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2C5F8A;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-list { list-style: none; margin-bottom: 14px; }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-item input[type="text"] {
+      flex: 1;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 7px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #333;
+      transition: border-color 0.2s;
+    }
+    .task-item input[type="text"]:focus {
+      outline: none;
+      border-color: #2C5F8A;
+    }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      line-height: 1;
+    }
+    .btn-remove:hover { color: #e53935; background: #ffeaea; }
+
+    .no-tasks {
+      color: #aaa;
+      font-style: italic;
+      font-size: 14px;
+      padding: 10px 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s;
+    }
+    .btn-add {
+      background: #e8f0fe;
+      color: #2C5F8A;
+    }
+    .btn-add:hover { background: #d0e4ff; }
+    .btn-save {
+      background: #2C5F8A;
+      color: white;
+    }
+    .btn-save:hover { background: #1e4a70; }
+    .btn-test-reminder {
+      background: #fff8e1;
+      color: #b45309;
+      border: 1.5px solid #fcd34d;
+    }
+    .btn-test-reminder:hover { background: #fef3c7; }
+    .btn-test-eom {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1.5px solid #86efac;
+    }
+    .btn-test-eom:hover { background: #dcfce7; }
+
+    .actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+    .save-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #1e4a70;
+      color: white;
+      padding: 13px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      z-index: 999;
+      animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .info-box {
+      background: #f0f7ff;
+      border-left: 4px solid #2C5F8A;
+      padding: 14px 18px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #444;
+    }
+    .info-box strong { color: #2C5F8A; }
+
+    .badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #2C5F8A;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🦷 Serenity Dental</h1>
+    <p>End-of-Month Email Task Manager</p>
+  </div>
+  <div id="nextSendInfo" style="text-align:right;font-size:13px;opacity:0.85;"></div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="info-box">
+      <strong>How this works:</strong><br/>
+      Every <strong>Wednesday before the last Thursday</strong> of the month, you'll receive a reminder email to review this task list.
+      On <strong>last Thursday morning</strong>, Alex automatically receives the EOM report link + the confirmed task list below.
+      Edit tasks anytime — changes save immediately for the next send.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="month-selector">
+      <label>Editing tasks for:</label>
+      <select id="monthSelect">
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+      <span class="badge" id="taskCountBadge">0 tasks</span>
+    </div>
+
+    <div class="section-title">📋 Monthly Special Tasks</div>
+
+    <ul class="task-list" id="taskList"></ul>
+
+    <div class="save-row">
+      <button class="btn btn-add" onclick="addTask()">＋ Add Task</button>
+      <button class="btn btn-save" id="saveBtn" onclick="saveTasks()">💾 Save Changes</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">✉️ Send Test Emails</div>
+    <p style="font-size:14px;color:#666;margin-bottom:16px;">
+      Preview exactly what will be sent before the scheduled date. Uses the currently saved task list for the selected month.
+    </p>
+    <div class="actions">
+      <button class="btn btn-test-reminder" onclick="sendTest('reminder')">
+        📩 Send Reminder to Dr. Katie
+      </button>
+      <button class="btn btn-test-eom" onclick="sendTest('eom')">
+        📨 Send EOM Email to Alex
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const MONTH_NAMES = ["January","February","March","April","May","June",
+    "July","August","September","October","November","December"];
+
+  let currentMonth = new Date().getMonth() + 1;
+  let tasks = [];
+
+  document.getElementById('monthSelect').value = currentMonth;
+  document.getElementById('monthSelect').addEventListener('change', function() {
+    currentMonth = parseInt(this.value);
+    loadTasks();
+  });
+
+  function getLastThursday(year, month) {
+    const lastDay = new Date(year, month, 0);
+    const dow = lastDay.getDay();
+    const diff = dow >= 4 ? dow - 4 : dow + 3;
+    const d = new Date(lastDay);
+    d.setDate(lastDay.getDate() - diff);
+    return d;
+  }
+
+  function updateNextSendInfo() {
+    const now = new Date();
+    const lastThu = getLastThursday(now.getFullYear(), now.getMonth() + 1);
+    const wed = new Date(lastThu);
+    wed.setDate(lastThu.getDate() - 1);
+    const opts = { month: 'short', day: 'numeric' };
+    document.getElementById('nextSendInfo').innerHTML =
+      `Next reminder to you: <strong>${wed.toLocaleDateString('en-US', opts)}</strong><br/>
+       Alex's email sends: <strong>${lastThu.toLocaleDateString('en-US', opts)}</strong>`;
+  }
+
+  async function loadTasks() {
+    try {
+      const res = await fetch(`/api/tasks?month=${currentMonth}`);
+      const data = await res.json();
+      tasks = data.tasks || [];
+    } catch {
+      tasks = [];
+    }
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const list = document.getElementById('taskList');
+    const badge = document.getElementById('taskCountBadge');
+    badge.textContent = tasks.length === 0 ? 'No tasks' : `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`;
+
+    if (tasks.length === 0) {
+      list.innerHTML = '<p class="no-tasks">No special tasks for this month. Click "+ Add Task" to add one.</p>';
+      return;
+    }
+
+    list.innerHTML = tasks.map((task, i) => `
+      <li class="task-item">
+        <input type="text" value="${escHtml(task)}" oninput="tasks[${i}] = this.value" placeholder="Enter task..." />
+        <button class="btn-remove" onclick="removeTask(${i})" title="Remove task">×</button>
+      </li>
+    `).join('');
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function addTask() {
+    tasks.push('');
+    renderTasks();
+    // Focus the new input
+    const inputs = document.querySelectorAll('.task-item input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }
+
+  function removeTask(i) {
+    tasks.splice(i, 1);
+    renderTasks();
+  }
+
+  async function saveTasks() {
+    const btn = document.getElementById('saveBtn');
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
+    btn.disabled = true;
+
+    // Filter out blank tasks
+    tasks = tasks.filter(t => t.trim() !== '');
+
+    try {
+      const res = await fetch(`/api/tasks?month=${currentMonth}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks })
+      });
+      await res.json();
+      showToast(`✅ ${MONTH_NAMES[currentMonth-1]} tasks saved!`);
+      renderTasks();
+    } catch {
+      showToast('❌ Save failed — please try again');
+    }
+
+    btn.innerHTML = '💾 Save Changes';
+    btn.disabled = false;
+  }
+
+  async function sendTest(type) {
+    showToast('📤 Sending test email...');
+    try {
+      const res = await fetch('/api/send-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, month: currentMonth })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const who = type === 'reminder' ? 'Dr. Katie' : 'Alex';
+        showToast(`✅ Test email sent to ${who}!`);
+      } else {
+        showToast('❌ Send failed — check your setup');
+      }
+    } catch {
+      showToast('❌ Send failed — check your setup');
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  // Init
+  updateNextSendInfo();
+  loadTasks();
+</script>
+</body>
+</html>

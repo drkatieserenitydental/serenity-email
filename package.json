@@ -1,0 +1,16 @@
+{
+  "name": "serenity-dental-eom-emails",
+  "version": "1.0.0",
+  "description": "Automated end-of-month email system for Serenity Dental",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.28.0"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}
